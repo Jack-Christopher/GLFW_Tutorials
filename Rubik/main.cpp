@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include "Rubik.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -12,11 +14,9 @@ void processInput(GLFWwindow* window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const double PI = 3.1415926535;
 int key_press_counter = 0;
 
 enum drawType { Point = 0, Line = 1, Triangle = 2 };
-enum axisType { X = 0, Y = 1, Z = 2 };
 
 
 const char* vertexShaderSource = "#version 330 core\n"
@@ -142,26 +142,6 @@ void draw(unsigned int& shaderProgram, unsigned int& VAO, const drawType &drawTy
     // glBindVertexArray(0); // no need to unbind it every time 
 }
 
-void get_rectangle_coords(float x1, float y1, float z1, float x2, float y2, float z2, float* v1, float* v2, const axisType & axisType)
-{
-     switch (axisType)
-     {
-         case Z:
-             v1[0] = x1; v1[1] = y1; v1[2] = z1;       v1[3] = x2; v1[4] = y1; v1[5] = z1;       v1[6] = x1; v1[7] = y2; v1[8] = z1;
-             v2[0] = x1; v2[1] = y2; v2[2] = z2;       v2[3] = x2; v2[4] = y2; v2[5] = z2;       v2[6] = x2; v2[7] = y1; v2[8] = z2;
-             break;
-         case Y:
-             v1[0] = x1; v1[1] = y1; v1[2] = z1;       v1[3] = x2; v1[4] = y1; v1[5] = z1;       v1[6] = x1; v1[7] = y1; v1[8] = z2;
-             v2[0] = x2; v2[1] = y2; v2[2] = z1;       v2[3] = x2; v2[4] = y2; v2[5] = z2;       v2[6] = x1; v2[7] = y2; v2[8] = z2;
-             break;
-         case X:
-             v1[0] = x1; v1[1] = y1; v1[2] = z1;       v1[3] = x1; v1[4] = y2; v1[5] = z1;       v1[6] = x2; v1[7] = y1; v1[8] = z2;
-             v2[0] = x2; v2[1] = y1; v2[2] = z2;       v2[3] = x2; v2[4] = y2; v2[5] = z2;       v2[6] = x2; v2[7] = y2; v2[8] = z1;
-             break;
-     }
-    //v1[0] = x1; v1[1] = y1; v1[2] = z1;       v1[3] = x1; v1[4] = y2; v1[5] = z1;       v1[6] = x2; v1[7] = y1; v1[8] = z2;
-	//v2[0] = x2; v2[1] = y2; v2[2] = z2;       v2[3] = x2; v2[4] = y1; v2[5] = z2;       v2[6] = x1; v2[7] = y2; v2[8] = z1;
-}
 
 void multiply(float vertices1[4][4], float vertices2[4][1])
 {
@@ -184,7 +164,7 @@ void multiply(float vertices1[4][4], float vertices2[4][1])
 
 
 
-void prepare_rotation_matrix(float vertices[4][4], float angle, const axisType &axisType)
+void prepare_rotation_matrix(float vertices[4][4], float angle, rotation_axis axis)
 {
 	// Default values for rotation matrix
     vertices[0][0] = 1.0f; 	vertices[0][1] = 0.0f; 	vertices[0][2] = 0.0f;  vertices[0][3] = 0.0f;
@@ -195,17 +175,17 @@ void prepare_rotation_matrix(float vertices[4][4], float angle, const axisType &
     float sine = sin(angle * ( PI/180 ));
     float cosine = cos(angle * (PI / 180));
 	
-    switch (axisType)
+    switch (axis)
     {
-		case X:
+		case rotation_axis::X:
             vertices[1][1] = cosine;    vertices[1][2] = -sine;
 			vertices[2][1] = sine;      vertices[2][2] = cosine;
             break;
-		case Y:
+		case rotation_axis::Y:
 			vertices[0][0] = cosine;    vertices[0][2] = sine;
 			vertices[2][0] = -sine;     vertices[2][2] = cosine;
 			break;
-		case Z:
+		case rotation_axis::Z:
 			vertices[0][0] = cosine;    vertices[0][1] = -sine;
 			vertices[1][0] = sine;      vertices[1][1] = cosine;
 			break;
@@ -214,10 +194,10 @@ void prepare_rotation_matrix(float vertices[4][4], float angle, const axisType &
 
 
 // Math operations
-void rotate(float* vertices, float angle, const axisType &axisType)
+void rotate(float* vertices, float angle, rotation_axis axis)
 {
     float matrix[4][4];
-    prepare_rotation_matrix(matrix, angle, axisType);
+    prepare_rotation_matrix(matrix, angle, axis);
 	
     float data1[4][1] = { {vertices[0]}, {vertices[1]}, {vertices[2]}, {1.0f} };
 	float data2[4][1] = { {vertices[3]}, {vertices[4]}, {vertices[5]}, {1.0f} };
@@ -232,13 +212,13 @@ void rotate(float* vertices, float angle, const axisType &axisType)
 	vertices[6] = data3[0][0];  vertices[7] = data3[1][0];  vertices[8] = data3[2][0];
 }
 
-void prepare_cube_faces(float vertices[][9], int& index, const axisType& axisType, bool side)
+void prepare_cube_faces(float vertices[][9], int& index,  rotation_axis axis, bool side)
 {
     float x_coord, y_coord, z_coord;
 	
-    switch (axisType)
+    switch (axis)
     {
-    case Z:
+    case rotation_axis::Z:
         // Face in the X-Y plane
         z_coord = (side)? (- 0.6f) : (0.6f);
         y_coord = -0.6f;
@@ -248,14 +228,14 @@ void prepare_cube_faces(float vertices[][9], int& index, const axisType& axisTyp
             x_coord = -0.6f;
             for (int j = 1; j < 4; j++)
             {
-                get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord + 0.4, z_coord, vertices[index], vertices[index + 1], axisType::Z);
+                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord + 0.4, z_coord, vertices[index], vertices[index + 1], rotation_axis::Z);
                 x_coord += 0.4f;
                 index += 2;
             }
             y_coord += 0.4f;
         }
         break;
-    case Y:
+    case rotation_axis::Y:
         // Face in the X-Z plane
         y_coord = (side)? (- 0.6f) : (0.6f);
         z_coord = -0.6f;
@@ -265,14 +245,14 @@ void prepare_cube_faces(float vertices[][9], int& index, const axisType& axisTyp
             x_coord = -0.6f;
             for (int j = 1; j < 4; j++)
             {
-                get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord, z_coord + 0.4, vertices[index], vertices[index + 1], axisType::Y);
+                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord, z_coord + 0.4, vertices[index], vertices[index + 1], rotation_axis::Y);
                 x_coord += 0.4f;
                 index += 2;
             }
             z_coord += 0.4f;
         }
         break;
-    case X:
+    case rotation_axis::X:
         // Face in the Y-Z plane
         x_coord = (side)? (- 0.6f) : (0.6f);
         z_coord = -0.6f;
@@ -282,7 +262,7 @@ void prepare_cube_faces(float vertices[][9], int& index, const axisType& axisTyp
             y_coord = -0.6f;
             for (int j = 1; j < 4; j++)
             {
-                get_rectangle_coords(x_coord, y_coord, z_coord, x_coord, y_coord + 0.4, z_coord + 0.4, vertices[index], vertices[index + 1], axisType::X);
+                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord, y_coord + 0.4, z_coord + 0.4, vertices[index], vertices[index + 1], rotation_axis::X);
                 y_coord += 0.4f;
                 index += 2;
             }
@@ -312,7 +292,7 @@ const int n_shaders = 6;
 const int n_rectangles = 54;
 // const int n_rectangles = 9;
 const int n_triangles = n_rectangles * 2;
-const float angle = 90.0f;
+const float angle = 10.0f;
 
 unsigned int VBO_triangles[n_triangles];
 unsigned int VAO_triangles[n_triangles];
@@ -323,14 +303,14 @@ float vertices[n_triangles][9];
 
 
 // Must be declared after the global variables
-void move_cube(int& key_press_counter, const axisType& axisType)
+void move_cube(int& key_press_counter,  rotation_axis axis)
 {
     key_press_counter++;
     if (key_press_counter > 120)
     {
         key_press_counter = 0;
         for (int i = 0; i < n_triangles; i++)
-            rotate(vertices[i], angle, axisType);
+            rotate(vertices[i], angle, axis);
 
         for (int i = 0; i < n_triangles; i++)
         {
@@ -386,30 +366,21 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
+	Rubik rubik;
+
     int index = 0;
-	prepare_cube_faces(vertices, index, X, false);
-	prepare_cube_faces(vertices, index, Y, false);
-	prepare_cube_faces(vertices, index, Z, false);
-	prepare_cube_faces(vertices, index, X, true);
-	prepare_cube_faces(vertices, index, Y, true);
-	prepare_cube_faces(vertices, index, Z, true);    
+	prepare_cube_faces(vertices, index, rotation_axis::X, false);
+	prepare_cube_faces(vertices, index, rotation_axis::Y, false);
+	prepare_cube_faces(vertices, index, rotation_axis::Z, false);
+	prepare_cube_faces(vertices, index, rotation_axis::X, true);
+	prepare_cube_faces(vertices, index, rotation_axis::Y, true);
+	prepare_cube_faces(vertices, index, rotation_axis::Z, true);
     
     for (int i = 0; i < n_triangles; i++)
     {
 		prepare_VB0_VAO(VBO_triangles[i], VAO_triangles[i], vertices[i], sizeof(vertices[i]), drawType::Triangle);
     }
-    
-	// print vertices
-    // for (int i = 0; i < n_triangles; i++)
-    // {
-    	// std::cout << "Triangle " << i << ": ";
-        // for (int j = 0; j < 9; j++)
-        // {
-            // std::cout << vertices[i][j] << " ";
-        // }
-        // std::cout << std::endl;
-    // }
-		
+  
 	
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -471,15 +442,15 @@ void processInput(GLFWwindow* window)
 
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
-        move_cube(key_press_counter, X);
+        move_cube(key_press_counter, rotation_axis::X);
     }
     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
     {
-        move_cube(key_press_counter, Y);
+        move_cube(key_press_counter, rotation_axis::Y);
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
     {
-        move_cube(key_press_counter, Z);
+        move_cube(key_press_counter, rotation_axis::Z);
     }
 }
 
