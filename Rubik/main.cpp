@@ -4,10 +4,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 
 #include "Rubik.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+const char* fragmentShaderCreator(color c);
 void processInput(GLFWwindow* window);
 
 // settings
@@ -15,24 +17,47 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int key_press_counter = 0;
+const int iteration_times = 25;
 
 enum drawType { Point = 0, Line = 1, Triangle = 2 };
 
 
-const char* vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
+std::map<std::string, const char*> fragmentShaderSources = {
+    {"blue", fragmentShaderCreator(colors["blue"])},
+    {"green", fragmentShaderCreator(colors["green"])},
+    {"orange", fragmentShaderCreator(colors["orange"])},
+    {"red", fragmentShaderCreator(colors["red"])},
+    {"white", fragmentShaderCreator(colors["white"])},
+    {"yellow", fragmentShaderCreator(colors["yellow"])},
+	{"gray", fragmentShaderCreator(colors["gray"])},
+};
 
-const char* fragmentShaderCreator(float R, float G, float B)
+const char* vertexShaderSource = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+
+std::map<std::string, unsigned int> shaderPrograms = {
+    {"blue", 0},
+    {"green", 0},
+    {"orange", 0},
+    {"red", 0},
+    {"white", 0},
+    {"yellow", 0},
+	{"gray", 0},
+};
+
+
+
+const char* fragmentShaderCreator(color c)
 {
     std::string temp = "#version 330 core\n"
         "out vec4 FragColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(" + std::to_string(R) + "f, " + std::to_string(G) + "f, " + std::to_string(B) + "f, 1.0f);\n"
+        "   FragColor = vec4(" + std::to_string(c.R) + "f, " + std::to_string(c.G) + "f, " + std::to_string(c.B) + "f, 1.0f);\n"
         "}\0";
     const char* fragmentShader = new char[temp.length() + 1];
     strcpy(const_cast<char*>(fragmentShader), temp.c_str());
@@ -212,109 +237,40 @@ void rotate(float* vertices, float angle, rotation_axis axis)
 	vertices[6] = data3[0][0];  vertices[7] = data3[1][0];  vertices[8] = data3[2][0];
 }
 
-void prepare_cube_faces(float vertices[][9], int& index,  rotation_axis axis, bool side)
-{
-    float x_coord, y_coord, z_coord;
-	
-    switch (axis)
-    {
-    case rotation_axis::Z:
-        // Face in the X-Y plane
-        z_coord = (side)? (- 0.6f) : (0.6f);
-        y_coord = -0.6f;
-
-        for (int i = 1; i < 4; i++)
-        {
-            x_coord = -0.6f;
-            for (int j = 1; j < 4; j++)
-            {
-                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord + 0.4, z_coord, vertices[index], vertices[index + 1], rotation_axis::Z);
-                x_coord += 0.4f;
-                index += 2;
-            }
-            y_coord += 0.4f;
-        }
-        break;
-    case rotation_axis::Y:
-        // Face in the X-Z plane
-        y_coord = (side)? (- 0.6f) : (0.6f);
-        z_coord = -0.6f;
-
-        for (int i = 1; i < 4; i++)
-        {
-            x_coord = -0.6f;
-            for (int j = 1; j < 4; j++)
-            {
-                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord + 0.4, y_coord, z_coord + 0.4, vertices[index], vertices[index + 1], rotation_axis::Y);
-                x_coord += 0.4f;
-                index += 2;
-            }
-            z_coord += 0.4f;
-        }
-        break;
-    case rotation_axis::X:
-        // Face in the Y-Z plane
-        x_coord = (side)? (- 0.6f) : (0.6f);
-        z_coord = -0.6f;
-
-        for (int i = 1; i < 4; i++)
-        {
-            y_coord = -0.6f;
-            for (int j = 1; j < 4; j++)
-            {
-                op::get_rectangle_coords(x_coord, y_coord, z_coord, x_coord, y_coord + 0.4, z_coord + 0.4, vertices[index], vertices[index + 1], rotation_axis::X);
-                y_coord += 0.4f;
-                index += 2;
-            }
-            z_coord += 0.4f;
-        }
-        break;
-    }
-	//std::cout<< x_coord<< ", "<< y_coord << ", " <<z_coord<<"\n";
-}
-
-
-
-// Shaders and programs
-const char* fragmentShaderSourceRed     = fragmentShaderCreator(1.0f, 0.0f, 0.0f);    // red
-const char* fragmentShaderSourceGreen   = fragmentShaderCreator(0.0f, 1.0f, 0.0f);    // green
-const char* fragmentShaderSourceBlue    = fragmentShaderCreator(0.0f, 0.0f, 1.0f);    // blue
-const char* fragmentShaderSourceOrange  = fragmentShaderCreator(1.0f, 0.5f, 0.0f);    // orange
-const char* fragmentShaderSourceWhite   = fragmentShaderCreator(1.0f, 1.0f, 1.0f);    // white
-const char* fragmentShaderSourceYellow  = fragmentShaderCreator(1.0f, 1.0f, 0.0f);    // yellow
-
-std::vector<const char* > fragmentShaderSourceList = { fragmentShaderSourceRed, fragmentShaderSourceGreen, 
-    fragmentShaderSourceBlue, fragmentShaderSourceOrange, fragmentShaderSourceWhite, fragmentShaderSourceYellow };
 
 // Important variables
 
-const int n_shaders = 6;
-const int n_rectangles = 54;
-// const int n_rectangles = 9;
-const int n_triangles = n_rectangles * 2;
-const float angle = 10.0f;
+const int n_shaders = 7;
+// const float angle = 1.0f;
 
-unsigned int VBO_triangles[n_triangles];
-unsigned int VAO_triangles[n_triangles];
-
-float vertices[n_triangles][9];
+Rubik rubik;
 
 
-
-
-// Must be declared after the global variables
-void move_cube(int& key_press_counter,  rotation_axis axis)
+void move_cube(int& key_press_counter, float angle, rotation_axis axis)
 {
     key_press_counter++;
-    if (key_press_counter > 120)
+    if (key_press_counter > iteration_times)
     {
         key_press_counter = 0;
-        for (int i = 0; i < n_triangles; i++)
-            rotate(vertices[i], angle, axis);
-
-        for (int i = 0; i < n_triangles; i++)
+        // Cube loops
+        for (int i = 0; i < 3; i++)
         {
-            prepare_VB0_VAO(VBO_triangles[i], VAO_triangles[i], vertices[i], sizeof(vertices[i]), drawType::Triangle);
+            for (int j = 0; j < 3; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Cube &cube = rubik.matrix[i][j][k];
+                    cube.rotate(angle, axis);
+                    cube.set_faces();
+
+                    // faces loop
+                    for (int v = 0; v < 6; v++)
+                    {
+                        prepare_VB0_VAO(cube.VBO[v * 2], cube.VAO[v * 2], &cube.data[v * 2][0], 9 * sizeof(float), drawType::Triangle);
+                        prepare_VB0_VAO(cube.VBO[v * 2 + 1], cube.VAO[v * 2 + 1], &cube.data[v * 2 + 1][0], 9 * sizeof(float), drawType::Triangle);
+                    }
+                }
+            }
         }
     }
 }
@@ -356,34 +312,45 @@ int main()
 
     // build and compile our shader program
     // ------------------------------------
-    unsigned int vertexShader[n_shaders], fragmentShader[n_shaders], shaderProgram[n_shaders];
-    for (int i = 0; i < n_shaders; i++)
-	{
-		prepare_shader(vertexShader[i], fragmentShader[i], vertexShaderSource, fragmentShaderSourceList[i], shaderProgram[i]);
-	}
-	
+    std::vector<unsigned int> vertexShaders(fragmentShaderSources.size());
+    std::vector<unsigned int> fragmentShaders(fragmentShaderSources.size());
+
+    int idx = 0;
+    for (auto& f : fragmentShaderSources)
+    {
+        prepare_shader(vertexShaders[idx], fragmentShaders[idx], vertexShaderSource, f.second, shaderPrograms[f.first]);
+        idx++;
+    }
+
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-	Rubik rubik;
-
-    int index = 0;
-	prepare_cube_faces(vertices, index, rotation_axis::X, false);
-	prepare_cube_faces(vertices, index, rotation_axis::Y, false);
-	prepare_cube_faces(vertices, index, rotation_axis::Z, false);
-	prepare_cube_faces(vertices, index, rotation_axis::X, true);
-	prepare_cube_faces(vertices, index, rotation_axis::Y, true);
-	prepare_cube_faces(vertices, index, rotation_axis::Z, true);
-    
-    for (int i = 0; i < n_triangles; i++)
+	// Cube loops
+    for (int i = 0; i < 3; i++)
     {
-		prepare_VB0_VAO(VBO_triangles[i], VAO_triangles[i], vertices[i], sizeof(vertices[i]), drawType::Triangle);
+        for (int j = 0; j < 3; j++)
+        {
+            for (int k = 0; k < 3; k++)
+            {
+                Cube &cube = rubik.matrix[i][j][k];
+                // faces loop
+                for (int v = 0; v < 6; v++)
+                {
+                    prepare_VB0_VAO(cube.VBO[v * 2], cube.VAO[v * 2], &cube.data[v * 2][0], 9 * sizeof(float), drawType::Triangle);
+                    prepare_VB0_VAO(cube.VBO[v * 2 + 1], cube.VAO[v * 2 + 1], &cube.data[v * 2 + 1][0], 9 * sizeof(float), drawType::Triangle);
+                }
+            }
+        }
     }
-  
-	
+    
+    // Habilidad el test de profundidad
+    glEnable(GL_DEPTH_TEST);
+    // Aceptar el fragmento si está más cerca de la cámara que el fragmento anterior
+    glDepthFunc(GL_LESS);
+
     // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
@@ -395,18 +362,31 @@ int main()
 
         // render
         // ------
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw figures
         // ------------
-        // 
-        for (int i = 0; i < n_triangles; i += 2)
+
+        for (int i = 0; i < 3; i++)
         {
-            draw(shaderProgram[(i/2) % 6], VAO_triangles[i], drawType::Triangle);
-            draw(shaderProgram[(i/2) % 6], VAO_triangles[i + 1], drawType::Triangle);
+            for (int j = 0; j < 3; j++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Cube& cube = rubik.matrix[i][j][k];
+                    // faces loop
+                    for (int v = 0; v < 6; v++)
+                    {
+                        //std::cout << cube.faces[v].color_name << " ";
+                        draw(shaderPrograms[cube.faces[v].color_name], cube.VAO[v * 2], drawType::Triangle);
+                        draw(shaderPrograms[cube.faces[v].color_name], cube.VAO[v * 2 + 1], drawType::Triangle);
+                    }
+                }
+            }
         }
-        
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -415,16 +395,28 @@ int main()
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    for (int i = 0; i < n_triangles; i++)
+
+    for (int i = 0; i < 3; i++)
     {
-		glDeleteVertexArrays(1, &VAO_triangles[i]);
-		glDeleteBuffers(1, &VBO_triangles[i]);
+       for (int j = 0; j < 3; j++)
+       {
+            for (int k = 0; k < 3; k++)
+            {
+                for (int v = 0; v < 6; v++)
+                {
+                    Cube& cube = rubik.matrix[i][j][k];
+                    glDeleteVertexArrays(1, &cube.VAO[v]);
+                    glDeleteBuffers(1, &cube.VBO[v]);
+                }
+            }
+        }
     }
-    for (int i = 0; i < n_shaders; i++)
-    {
-        glDeleteProgram(shaderProgram[i]);
-        delete fragmentShaderSourceList[i];
-    }
+	
+
+    for (auto& shader : shaderPrograms)
+        glDeleteProgram(shader.second);
+    for (auto& fragmentShader : fragmentShaderSources)
+        delete fragmentShader.second;
 	
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -440,18 +432,18 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-    {
-        move_cube(key_press_counter, rotation_axis::X);
-    }
-    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-    {
-        move_cube(key_press_counter, rotation_axis::Y);
-    }
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
-    {
-        move_cube(key_press_counter, rotation_axis::Z);
-    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        move_cube(key_press_counter, 1.0f, rotation_axis::X);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		move_cube(key_press_counter, -1.0f, rotation_axis::X);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        move_cube(key_press_counter, 1.0f, rotation_axis::Y);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		move_cube(key_press_counter, -1.0f, rotation_axis::Y);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        move_cube(key_press_counter, 1.0f, rotation_axis::Z);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		move_cube(key_press_counter, -1.0f, rotation_axis::Z);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
