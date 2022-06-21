@@ -5,11 +5,50 @@
 
 enum class rotation_axis : unsigned short { X = 0, Y = 1, Z = 2 };
 
+struct color
+{
+    float R;
+    float G;
+    float B;
+};
+
+struct vertex
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct face
+{
+    vertex a1;
+	vertex a2;
+	vertex a3;
+	vertex b1;
+	vertex b2;
+	vertex b3;	
+
+    //color face_color;
+    std::string color_name = "gray";
+};
+
+std::map<std::string, color> colors = {
+    {"red", {1.0f, 0.0f, 0.0f}},
+    {"yellow", {1.0f, 1.0f, 0.0f}},
+    {"green", {0.0f, 1.0f, 0.0f}},
+    {"blue", {0.0f, 0.0f, 1.0f}},
+    {"white", {1.0f, 1.0f, 1.0f}},
+    {"orange", {1.0f, 0.5f, 0.0f}},
+	{"gray", {0.5f, 0.5f, 0.5f}},
+};
+
+
+
 namespace op
 {
 
     // Math operations
-    void multiply(std::vector<std::vector<double>> matrix, std::vector<double>& vertices)
+    void multiply(std::vector<std::vector<float>> matrix, std::vector<float>& vertices)
     {
         // multiply matrix by vertices
         float result[4];
@@ -29,9 +68,9 @@ namespace op
     }
 
 
-    std::vector<std::vector<double>> get_matrix()
+    std::vector<std::vector<float>> get_matrix()
     {
-        std::vector<std::vector<double>> matrix = {
+        std::vector<std::vector<float>> matrix = {
             {1.0f, 0.0f, 0.0f, 0.0f},
             {0.0f, 1.0f, 0.0f, 0.0f},
             {0.0f, 0.0f, 1.0f, 0.0f},
@@ -41,11 +80,11 @@ namespace op
         return matrix;
     }
 
-    std::vector<std::vector<double>> get_rotation_matrix(float angle, rotation_axis axis)
+    std::vector<std::vector<float>> get_rotation_matrix(float angle, rotation_axis axis)
     {
         float sine = sin(angle * (PI / 180));
         float cosine = cos(angle * (PI / 180));
-        std::vector<std::vector<double>> matrix;
+        std::vector<std::vector<float>> matrix;
         matrix = get_matrix();
 
         switch (axis)
@@ -70,9 +109,9 @@ namespace op
     }
 
 
-    void rotate(std::vector<std::vector<double>>& vertices, float angle, rotation_axis axis)
+    void rotate(std::vector<std::vector<float>>& vertices, float angle, rotation_axis axis)
     {
-        std::vector<std::vector<double>> rotation_matrix;
+        std::vector<std::vector<float>> rotation_matrix;
         rotation_matrix = get_rotation_matrix(angle, axis);
 
         for (int i = 0; i < 3; i++)
@@ -80,6 +119,22 @@ namespace op
             vertices[i].push_back(1.0f);
             multiply(rotation_matrix, vertices[i]);
             vertices[i].pop_back();
+        }
+    }
+
+
+    void rotate(std::vector<vertex> &vertices, float angle, rotation_axis axis)
+    {
+        std::vector<std::vector<float>> rotation_matrix;
+        rotation_matrix = get_rotation_matrix(angle, axis);
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::vector<float> temp = { vertices[i].x, vertices[i].y, vertices[i].z, 1.0f };
+            multiply(rotation_matrix, temp);
+			vertices[i].x = temp[0];
+			vertices[i].y = temp[1];
+			vertices[i].z = temp[2];
         }
     }
 
