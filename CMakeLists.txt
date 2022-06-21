@@ -11,5 +11,6 @@ add_subdirectory( Tutorial_07 )
 add_subdirectory( Tutorial_08 )
 
 add_subdirectory( Rubik )
+add_subdirectory( Projection_NatteRobbins )
 
 add_subdirectory( hw0 )
