@@ -23,9 +23,11 @@ size_t index_points = 0;
 size_t index_lines = 0;
 size_t index_triangles = 0;
 
-const int n_triangles = 20;
+//// Change these values according to your needs ////
+const int n_triangles = 10;
 const int n_lines = 10;
-const int n_points = 1;
+const int n_points = 10;
+////////////////////////////////////////////////////
 
 unsigned int VBO_triangles[n_triangles];
 unsigned int VAO_triangles[n_triangles];
@@ -40,15 +42,15 @@ float verticesPoints[n_points][2];
 
 // Shaders, put them in alphabetical order by names
 std::map<std::string, const char*> fragmentShaderSources = {
-    {"black", fragmentShaderCreator(0.0f, 0.0f, 0.0f)},     // black
-    {"blue", fragmentShaderCreator(0.0f, 0.0f, 1.0f)},      // blue
-    {"green", fragmentShaderCreator(0.0f, 1.0f, 0.0f)},     // green
-    {"orange", fragmentShaderCreator(1.0f, 0.5f, 0.0f)},    // orange
-    {"red", fragmentShaderCreator(1.0f, 0.0f, 0.0f)},       // red
-    {"sand", fragmentShaderCreator(0.82f, 0.66f, 0.43f)},   // sand
-    {"skyblue", fragmentShaderCreator(0.0f, 0.7f, 1.0f)},   // sky blue
-    {"white", fragmentShaderCreator(1.0f, 1.0f, 1.0f)},     // white
-    {"yellow", fragmentShaderCreator(1.0f, 1.0f, 0.0f)},    // yellow
+    {"black", fragmentShaderCreator(0.0f, 0.0f, 0.0f)},
+    {"blue", fragmentShaderCreator(0.0f, 0.0f, 1.0f)},
+    {"green", fragmentShaderCreator(0.0f, 1.0f, 0.0f)},
+    {"orange", fragmentShaderCreator(1.0f, 0.5f, 0.0f)},
+    {"red", fragmentShaderCreator(1.0f, 0.0f, 0.0f)},
+    {"sand", fragmentShaderCreator(0.82f, 0.66f, 0.43f)},
+    {"skyblue", fragmentShaderCreator(0.0f, 0.7f, 1.0f)},
+    {"white", fragmentShaderCreator(1.0f, 1.0f, 1.0f)},
+    {"yellow", fragmentShaderCreator(1.0f, 1.0f, 0.0f)},
 };
 
 const char* vertexShaderSource = "#version 330 core\n"
