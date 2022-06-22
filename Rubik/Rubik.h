@@ -4,10 +4,16 @@
 
 class Rubik
 {
+private:
+	int iteration_times = 20;
 public:
 	Cube matrix[3][3][3];
 	
 	Rubik();
+	void prepare_VB0_VAO();
+	void draw(std::map<std::string, unsigned int> shaderPrograms);
+	void move(int& key_press_counter, float angle, rotation_axis axis);
+	void free();
 	std::string to_string();
 	~Rubik();
 };
@@ -116,6 +122,96 @@ Rubik::Rubik()
 		matrix[2][2][2].faces[5].color_name = "orange";
 }
 
+
+void Rubik::prepare_VB0_VAO()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				Cube& cube = matrix[i][j][k];
+				// faces loop
+				for (int v = 0; v < 6; v++)
+				{
+					op::prepare_VB0_VAO(cube.VBO[v * 2], cube.VAO[v * 2], &cube.data[v * 2][0], 9 * sizeof(float), drawType::Triangle);
+					op::prepare_VB0_VAO(cube.VBO[v * 2 + 1], cube.VAO[v * 2 + 1], &cube.data[v * 2 + 1][0], 9 * sizeof(float), drawType::Triangle);
+				}
+			}
+		}
+	}
+}
+
+
+void Rubik::draw(std::map<std::string, unsigned int> shaderPrograms)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				Cube& cube = matrix[i][j][k];
+				// faces loop
+				for (int v = 0; v < 6; v++)
+				{
+					op::draw(shaderPrograms[cube.faces[v].color_name], cube.VAO[v * 2], drawType::Triangle);
+					op::draw(shaderPrograms[cube.faces[v].color_name], cube.VAO[v * 2 + 1], drawType::Triangle);
+				}
+			}
+		}
+	}
+}
+
+void Rubik::move(int& key_press_counter, float angle, rotation_axis axis)
+{
+	key_press_counter++;
+	if (key_press_counter > iteration_times)
+	{
+		key_press_counter = 0;
+		// Cube loops
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				for (int k = 0; k < 3; k++)
+				{
+					Cube& cube = matrix[i][j][k];
+					cube.rotate(angle, axis);
+					cube.set_faces();
+
+					// faces loop
+					for (int v = 0; v < 6; v++)
+					{
+						op::prepare_VB0_VAO(cube.VBO[v * 2], cube.VAO[v * 2], &cube.data[v * 2][0], 9 * sizeof(float), drawType::Triangle);
+						op::prepare_VB0_VAO(cube.VBO[v * 2 + 1], cube.VAO[v * 2 + 1], &cube.data[v * 2 + 1][0], 9 * sizeof(float), drawType::Triangle);
+					}
+				}
+			}
+		}
+	}
+}
+
+void Rubik::free()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				// for each face
+				for (int v = 0; v < 6; v++)
+				{
+					Cube& cube = matrix[i][j][k];
+					glDeleteVertexArrays(1, &cube.VAO[v]);
+					glDeleteBuffers(1, &cube.VBO[v]);
+				}
+			}
+		}
+	}
+}
 
 std::string Rubik::to_string()
 {
