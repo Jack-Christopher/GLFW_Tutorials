@@ -33,6 +33,14 @@ struct face
     std::string color_name = "gray";
 };
 
+struct source
+{
+    const char* fragmentShaderSource;
+    unsigned int vertexShader;
+    unsigned int fragmentShader;
+    unsigned int shaderProgram;
+};
+
 std::map<std::string, color> colors = {
     {"red", {1.0f, 0.0f, 0.0f}},
     {"yellow", {1.0f, 1.0f, 0.0f}},
