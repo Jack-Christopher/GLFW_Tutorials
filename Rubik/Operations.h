@@ -5,6 +5,11 @@
 
 enum class rotation_axis : unsigned short { X = 0, Y = 1, Z = 2 };
 enum drawType { Point = 0, Line = 1, Triangle = 2 };
+enum class rotation_type { 
+    TOP, BOTTOM,
+    RIGHT, LEFT,
+    FRONT, BACK
+};
 
 struct color
 {
@@ -29,7 +34,6 @@ struct face
 	vertex b2;
 	vertex b3;	
 
-    //color face_color;
     std::string color_name = "gray";
 };
 
@@ -117,21 +121,6 @@ namespace op
         return matrix;
     }
 
-
-    void rotate(std::vector<std::vector<float>>& vertices, float angle, rotation_axis axis)
-    {
-        std::vector<std::vector<float>> rotation_matrix;
-        rotation_matrix = get_rotation_matrix(angle, axis);
-
-        for (int i = 0; i < 3; i++)
-        {
-            vertices[i].push_back(1.0f);
-            multiply(rotation_matrix, vertices[i]);
-            vertices[i].pop_back();
-        }
-    }
-
-
     void rotate(std::vector<vertex> &vertices, float angle, rotation_axis axis)
     {
         std::vector<std::vector<float>> rotation_matrix;
@@ -146,6 +135,47 @@ namespace op
 			vertices[i].z = temp[2];
         }
     }
+
+
+    // about an arbitrary axis
+    std::vector<std::vector<float>> get_rotation_matrix(float angle, vertex u) //u -> axis
+    {
+        float sine = sin(angle * (PI / 180));
+        float cosine = cos(angle * (PI / 180));
+        std::vector<std::vector<float>> matrix;
+        matrix = get_matrix();
+
+        matrix[0][0] = cosine + (u.x * u.x) * (1.0f - cosine);
+        matrix[0][1] = u.x * u.y * (1.0f - cosine) - u.z * sine;
+        matrix[0][2] = u.x * u.z * (1.0f - cosine) + u.y * sine;
+
+        matrix[1][0] = u.y * u.x * (1.0f - cosine) - u.z * sine;
+        matrix[1][1] = cosine + (u.y * u.y) * (1.0f - cosine);
+        matrix[1][2] = u.y * u.z * (1.0f - cosine) - u.x * sine;
+
+        matrix[2][0] = u.z * u.x * (1.0f - cosine) - u.y * sine;
+        matrix[2][1] = u.z * u.y * (1.0f - cosine) + u.x * sine;
+        matrix[2][2] = cosine + (u.z * u.z) * (1.0f - cosine);
+
+        return matrix;
+    }
+
+    void rotate(std::vector<vertex>& vertices, float angle, vertex axis)
+    {
+        std::vector<std::vector<float>> rotation_matrix;
+        rotation_matrix = get_rotation_matrix(angle, axis);
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::vector<float> temp = { vertices[i].x, vertices[i].y, vertices[i].z, 1.0f };
+            multiply(rotation_matrix, temp);
+            vertices[i].x = temp[0];
+            vertices[i].y = temp[1];
+            vertices[i].z = temp[2];
+        }
+    }
+
+
 
     void get_rectangle_coords(float x1, float y1, float z1, float x2, float y2, float z2, float* v1, float* v2, rotation_axis axis)
     {
@@ -282,76 +312,4 @@ namespace op
         }
         // glBindVertexArray(0); // no need to unbind it every time 
     }
-
-
-    void multiply(float vertices1[4][4], float vertices2[4][1])
-    {
-        // multiply 4x4 matrix vertice1 and 4x1 matrix vertices2
-        float result[4];
-        for (int i = 0; i < 4; i++)
-        {
-            result[i] = 0;
-            for (int j = 0; j < 4; j++)
-            {
-                result[i] += vertices1[i][j] * vertices2[j][0];
-            }
-        }
-        // copy result to vertices2
-        for (int i = 0; i < 4; i++)
-        {
-            vertices2[i][0] = result[i];
-        }
-    }
-
-
-
-    void prepare_rotation_matrix(float vertices[4][4], float angle, rotation_axis axis)
-    {
-        // Default values for rotation matrix
-        vertices[0][0] = 1.0f; 	vertices[0][1] = 0.0f; 	vertices[0][2] = 0.0f;  vertices[0][3] = 0.0f;
-        vertices[1][0] = 0.0f; 	vertices[1][1] = 1.0f; 	vertices[1][2] = 0.0f;  vertices[1][3] = 0.0f;
-        vertices[2][0] = 0.0f; 	vertices[2][1] = 0.0f; 	vertices[2][2] = 1.0f;  vertices[2][3] = 0.0f;
-        vertices[3][0] = 0.0f; 	vertices[3][1] = 0.0f; 	vertices[3][2] = 0.0f;  vertices[3][3] = 1.0f;
-
-        float sine = sin(angle * (PI / 180));
-        float cosine = cos(angle * (PI / 180));
-
-        switch (axis)
-        {
-        case rotation_axis::X:
-            vertices[1][1] = cosine;    vertices[1][2] = -sine;
-            vertices[2][1] = sine;      vertices[2][2] = cosine;
-            break;
-        case rotation_axis::Y:
-            vertices[0][0] = cosine;    vertices[0][2] = sine;
-            vertices[2][0] = -sine;     vertices[2][2] = cosine;
-            break;
-        case rotation_axis::Z:
-            vertices[0][0] = cosine;    vertices[0][1] = -sine;
-            vertices[1][0] = sine;      vertices[1][1] = cosine;
-            break;
-        }
-    }
-
-
-    // Math operations
-    void rotate(float* vertices, float angle, rotation_axis axis)
-    {
-        float matrix[4][4];
-        prepare_rotation_matrix(matrix, angle, axis);
-
-        float data1[4][1] = { {vertices[0]}, {vertices[1]}, {vertices[2]}, {1.0f} };
-        float data2[4][1] = { {vertices[3]}, {vertices[4]}, {vertices[5]}, {1.0f} };
-        float data3[4][1] = { {vertices[6]}, {vertices[7]}, {vertices[8]}, {1.0f} };
-
-        multiply(matrix, data1);
-        multiply(matrix, data2);
-        multiply(matrix, data3);
-
-        vertices[0] = data1[0][0];  vertices[1] = data1[1][0];  vertices[2] = data1[2][0];
-        vertices[3] = data2[0][0];  vertices[4] = data2[1][0];  vertices[5] = data2[2][0];
-        vertices[6] = data3[0][0];  vertices[7] = data3[1][0];  vertices[8] = data3[2][0];
-    }
-
-
 }
