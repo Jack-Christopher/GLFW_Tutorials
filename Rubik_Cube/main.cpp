@@ -125,54 +125,45 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // Plane Movements
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rubik.rotate(rotation_type::LEFT, true);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        rubik.rotate(rotation_type::LEFT, false);
-
+    // Whole Rubik movements
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_X, true);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_X, false);
+        rubik.move(0.5f, rotation_axis::X);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        rubik.move(-0.5f, rotation_axis::X);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        rubik.move(0.5f, rotation_axis::Y);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        rubik.move(-0.5f, rotation_axis::Y);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        rubik.move(0.5f, rotation_axis::Z);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        rubik.move(-0.5f, rotation_axis::Z);
 
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rubik.rotate(rotation_type::RIGHT, true);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        rubik.rotate(rotation_type::RIGHT, false);
-
-
+    // Plane Movements
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        rubik.rotate(rotation_type::TOP, true);
+        rubik.rotate(rotation_type::LEFT, true);
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        rubik.rotate(rotation_type::TOP, false);
-
+        rubik.rotate(rotation_type::LEFT, false);
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Y, true);
+        rubik.rotate(rotation_type::RIGHT, true);
     if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Y, false);
-
+        rubik.rotate(rotation_type::RIGHT, false);
     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BOTTOM, true);
+        rubik.rotate(rotation_type::TOP, true);
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BOTTOM, false);
-
-
+        rubik.rotate(rotation_type::TOP, false);
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
-        rubik.rotate(rotation_type::FRONT, false);
+        rubik.rotate(rotation_type::BOTTOM, true);
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-        rubik.rotate(rotation_type::FRONT, true);
-
+        rubik.rotate(rotation_type::BOTTOM, false);
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Z, false);
+        rubik.rotate(rotation_type::FRONT, true);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Z, true);
-
+        rubik.rotate(rotation_type::FRONT, false);
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BACK, false);
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         rubik.rotate(rotation_type::BACK, true);
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        rubik.rotate(rotation_type::BACK, false);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

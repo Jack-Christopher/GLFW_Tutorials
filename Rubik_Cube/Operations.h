@@ -8,8 +8,7 @@ enum drawType { Point = 0, Line = 1, Triangle = 2 };
 enum class rotation_type { 
     TOP, BOTTOM,
     RIGHT, LEFT,
-    FRONT, BACK,
-    CENTER_X, CENTER_Y, CENTER_Z
+    FRONT, BACK
 };
 
 struct color
@@ -138,7 +137,6 @@ namespace op
     }
 
 
-    /*
     // about an arbitrary axis
     std::vector<std::vector<float>> get_rotation_matrix(float angle, vertex u) //u -> axis
     {
@@ -177,7 +175,6 @@ namespace op
         }
     }
 
-    */
 
 
     void get_rectangle_coords(float x1, float y1, float z1, float x2, float y2, float z2, float* v1, float* v2, rotation_axis axis)

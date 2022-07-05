@@ -75,12 +75,10 @@ void Cube::rotate(float angle, rotation_axis axis)
 	op::rotate(vertices, angle, axis);
 }
 
-/*
 void Cube::rotate(float angle, vertex axis)
 {
 	op::rotate(vertices, angle, axis);
 }
-*/
 				
 				
 			

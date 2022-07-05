@@ -6,14 +6,12 @@ class Rubik
 {
 private:
 	double last_time_rubik = 0.0;
-	double last_time_button = 0.0;
-	int FPS = 60;
-	int PPS = 2;
+	int FPS = 45;
 	float remaining_degreees = 0.0f;
 	std::vector<Cube*> current_plane;
 	rotation_type rotation_t;
 	float rotation_angle;
-	rotation_axis current_axis;
+	vertex current_axis = { 0.0f, 0.0f, 0.0f };
 public:
 	Cube matrix[3][3][3];
 	
@@ -23,7 +21,7 @@ public:
 	void calculate_current_axis();
 	void draw(std::map < std::string, source> Sources);
 	void move(float angle, rotation_axis axis);
-	void move_plane(float angle, rotation_axis axis);
+	void move_plane(float angle, vertex axis);
 	void rotate_plane(std::vector<Cube*> pointers, bool is_clockwise);
 	void rotate(rotation_type rt, bool is_clockwise);
 	void free();
@@ -156,14 +154,14 @@ void Rubik::prepare_VB0_VAO()
 	}
 }
 
-void Rubik::move_plane(float angle, rotation_axis axis)
+void Rubik::move_plane(float angle, vertex axis)
 {
 	double current_time = glfwGetTime();
 	if ((current_time - last_time_rubik) > 1.0 / FPS)
 	{
 		std::cout << remaining_degreees << '\t';
-		std::cout << rotation_angle << '\n';
-		//std::cout << current_axis.x << " "<< current_axis.y<< " "<< current_axis.z << '\n';
+		std::cout << rotation_angle << '\t';
+		std::cout << current_axis.x << " "<< current_axis.y<< " "<< current_axis.z << '\n';
 		for (int i = 0; i < current_plane.size(); i++)
 		{
 			Cube *cube = current_plane[i];
@@ -184,13 +182,36 @@ void Rubik::move_plane(float angle, rotation_axis axis)
 	}
 }
 
+void Rubik::normalize_vector()
+{
+	float x = current_axis.x;
+	float y = current_axis.y;
+	float z = current_axis.z;
+
+	float norm = sqrt(x * x + y * y + z * z);
+	current_axis.x = current_axis.x / norm;
+	current_axis.y = current_axis.y / norm;
+	current_axis.y = current_axis.z / norm;
+
+}
+
+void Rubik::calculate_current_axis()
+{
+	Cube* center_cube = current_plane[4];
+	vertex a = center_cube->vertices[0];
+	vertex b = center_cube->vertices[6];
+	vertex middle = { (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.x) / 2 };
+	current_axis = middle;
+	normalize_vector();
+}
+
 
 void Rubik::draw(std::map <std::string, source> Sources)
 {
-	//std::cout << "CA: "<< current_axis.x << " " << current_axis.y << " " << current_axis.z << '\n';
+	std::cout << "CA: "<< current_axis.x << " " << current_axis.y << " " << current_axis.z << '\n';
 	if (remaining_degreees > 0.02f || remaining_degreees < -0.02f)
 	{
-		// calculate_current_axis();
+		calculate_current_axis();
 		move_plane(rotation_angle, current_axis);
 		// move_plane(rotation_angle, {0.0f, 1.0f, 0.0f});
 		// remaining_degreees -= rotation_angle;
@@ -232,7 +253,14 @@ void Rubik::move(float angle, rotation_axis axis)
 				for (int k = 0; k < 3; k++)
 				{
 					Cube& cube = matrix[i][j][k];
-					cube.rotate(angle, axis);
+					// cube.rotate(angle, axis);
+					if (axis == rotation_axis::X)
+						cube.rotate(angle, {1.0f, 0.0f, 0.0f});
+					else if (axis == rotation_axis::Y)
+						cube.rotate(angle, { 0.0f, 1.0f, 0.0f });
+					else if (axis == rotation_axis::Z)
+						cube.rotate(angle, { 0.0f, 0.0f, 1.0f });
+
 					cube.set_faces();
 
 					// faces loop
@@ -271,77 +299,47 @@ void Rubik::rotate_plane(std::vector<Cube*> pointers, bool is_clockwise)
 
 void Rubik::rotate(rotation_type rt, bool is_clockwise)
 {
-	double current_time = glfwGetTime();
-	if ((current_time - last_time_button) > 1.0 / PPS)
+	remaining_degreees = (is_clockwise) ? (90.0f) : (-90.0f);
+	rotation_angle = (is_clockwise) ? (5.0f) : (-5.0f);
+	rotation_t = rt;
+	std::vector<Cube*> pointers;
+
+	switch (rt)
 	{
-		remaining_degreees = (is_clockwise) ? (90.0f) : (-90.0f);
-		rotation_angle = (is_clockwise) ? (5.0f) : (-5.0f);
-		rotation_t = rt;
-
-		std::vector<Cube*> pointers;
-
-		switch (rt)
-		{
 		case rotation_type::TOP:
 			for (int k = 2; k >= 0; k--)
 				for (int i = 2; i >= 0; i--)
-					pointers.push_back(&matrix[i][0][k]);
-			current_axis = rotation_axis::Y;
-			break;
-        case rotation_type::CENTER_Y:
-			for (int k = 2; k >= 0; k--)
-				for (int i = 2; i >= 0; i--)
-					pointers.push_back(&matrix[i][1][k]);
-			current_axis = rotation_axis::Y;
+					pointers.push_back(&matrix[i][0][k]);				
 			break;
 		case rotation_type::BOTTOM:
 			for (int k = 2; k >= 0; k--)
 				for (int i = 2; i >= 0; i--)
 					pointers.push_back(&matrix[i][2][k]);
-			current_axis = rotation_axis::Y;
 			break;
 		case rotation_type::RIGHT:
 			for (int k = 2; k >= 0; k--)
 				for (int j = 2; j >= 0; j--)
 					pointers.push_back(&matrix[0][j][k]);
-			current_axis = rotation_axis::X;
-			break;
-        case rotation_type::CENTER_X:
-			for (int k = 2; k >= 0; k--)
-				for (int j = 2; j >= 0; j--)
-					pointers.push_back(&matrix[1][j][k]);
-			current_axis = rotation_axis::X;
 			break;
 		case rotation_type::LEFT:
 			for (int k = 2; k >= 0; k--)
 				for (int j = 2; j >= 0; j--)
 					pointers.push_back(&matrix[2][j][k]);
-			current_axis = rotation_axis::X;
 			break;
 		case rotation_type::FRONT:
 			for (int j = 2; j >= 0; j--)
 				for (int i = 2; i >= 0; i--)
 					pointers.push_back(&matrix[i][j][2]);
-			current_axis = rotation_axis::Z;
-			break;
-        case rotation_type::CENTER_Z:
-			for (int j = 2; j >= 0; j--)
-				for (int i = 2; i >= 0; i--)
-					pointers.push_back(&matrix[i][j][1]);
-			current_axis = rotation_axis::Z;
 			break;
 		case rotation_type::BACK:
 			for (int j = 2; j >= 0; j--)
 				for (int i = 2; i >= 0; i--)
 					pointers.push_back(&matrix[i][j][0]);
-			current_axis = rotation_axis::Z;
 			break;
-		}
-
-		rotate_plane(pointers, is_clockwise);
-		current_plane = pointers;
-		last_time_button = current_time;
 	}
+
+	rotate_plane(pointers, is_clockwise);
+	current_plane = pointers;
 }
 
 
