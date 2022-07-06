@@ -122,6 +122,15 @@ namespace op
         return matrix;
     }
 
+    std::vector<std::vector<float>> get_translation_matrix(float x, float y, float z)
+    {
+        std::vector<std::vector<float>> matrix = get_matrix();
+        matrix[0][3] = x;
+        matrix[1][3] = y;
+        matrix[2][3] = z;
+        return matrix;
+    }
+
     void rotate(std::vector<vertex> &vertices, float angle, rotation_axis axis)
     {
         std::vector<std::vector<float>> rotation_matrix;
@@ -136,6 +145,22 @@ namespace op
 			vertices[i].z = temp[2];
         }
     }
+
+    void translate(std::vector<vertex> &vertices, float x, float y, float z)
+    {
+        std::vector<std::vector<float>> translation_matrix;
+        translation_matrix = get_translation_matrix(x, y, z);
+        
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            std::vector<float> temp = { vertices[i].x, vertices[i].y, vertices[i].z, 1.0f };
+            multiply(translation_matrix, temp);
+            vertices[i].x = temp[0];
+            vertices[i].y = temp[1];
+            vertices[i].z = temp[2];
+        }
+    }
+
 
 
     /*

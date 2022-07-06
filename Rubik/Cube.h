@@ -12,12 +12,13 @@ public:
 	std::vector<vertex> vertices;
 	std::vector<face> faces;
 	std::vector<std::vector<float>> data;
+	std::string id;
 	
 	Cube();
 	void set_faces();
 	void set_vertices(vertex left_bottom_back, vertex right_top_front);
 	void rotate(float angle, rotation_axis axis);
-	void rotate(float angle, vertex axis);
+	// void rotate(float angle, vertex axis);
 	std::string to_string();
 	~Cube();
 };

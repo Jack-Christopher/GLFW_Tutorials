@@ -19,10 +19,10 @@ public:
 	
 	Rubik();
 	void prepare_VB0_VAO();
-	void normalize_vector();
-	void calculate_current_axis();
+	// void normalize_vector();
+	// void calculate_current_axis();
 	void draw(std::map < std::string, source> Sources);
-	void move(float angle, rotation_axis axis);
+	// void move(float angle, rotation_axis axis);
 	void move_plane(float angle, rotation_axis axis);
 	void rotate_plane(std::vector<Cube*> pointers, bool is_clockwise);
 	void rotate(rotation_type rt, bool is_clockwise);
@@ -34,22 +34,26 @@ public:
 
 Rubik::Rubik()
 {
+	float size = 1.0f;
+	float space = 0.02f;
 	float x, y, z;
-	x = -0.6f;
+	x = -size / 2;
 	for (int i = 2; i >= 0; i--)
 	{
-		y = -0.6f;
+		y = -size / 2;
 		for (int j = 2; j >= 0; j--)
 		{
-			z = -0.6f;
+			z = -size / 2;
 			for (int k = 2; k >= 0; k--)
 			{
-				matrix[i][j][k].set_vertices( { x, y, z }, { x + 0.4f, y + 0.4f, z + 0.4f } );
-				z += 0.4f;
+				matrix[i][j][k].set_vertices({ x + space, y + space, z + space },
+					{ x + size / 3 - space, y + size / 3 - space, z + size / 3 - space });
+				z += size / 3;
+				matrix[i][j][k].id = std::to_string(i) + std::to_string(j) + std::to_string(k);
 			}
-			y += 0.4f;
+			y += size / 3;
 		}
-		x += 0.4f;
+		x += size / 3;
 	}
 
 	// corner
@@ -161,9 +165,8 @@ void Rubik::move_plane(float angle, rotation_axis axis)
 	double current_time = glfwGetTime();
 	if ((current_time - last_time_rubik) > 1.0 / FPS)
 	{
-		std::cout << remaining_degreees << '\t';
-		std::cout << rotation_angle << '\n';
-		//std::cout << current_axis.x << " "<< current_axis.y<< " "<< current_axis.z << '\n';
+		std::cout << remaining_degreees << ", ";
+
 		for (int i = 0; i < current_plane.size(); i++)
 		{
 			Cube *cube = current_plane[i];
@@ -218,7 +221,7 @@ void Rubik::draw(std::map <std::string, source> Sources)
 	}
 }
 
-
+/*
 void Rubik::move(float angle, rotation_axis axis)
 {
 	double current_time = glfwGetTime();
@@ -247,6 +250,7 @@ void Rubik::move(float angle, rotation_axis axis)
 		last_time_rubik = current_time;
 	}
 }
+*/
 
 
 void Rubik::rotate_plane(std::vector<Cube*> pointers, bool is_clockwise)
@@ -255,17 +259,35 @@ void Rubik::rotate_plane(std::vector<Cube*> pointers, bool is_clockwise)
 	for (int i = 0; i < pointers.size(); i++)
 		copy.push_back(*pointers[i]);
 
-	if (is_clockwise)
-	{
-		*pointers[0] = copy[2];		*pointers[1] = copy[5];		*pointers[2] = copy[8];
-		*pointers[3] = copy[1];		*pointers[4] = copy[4];		*pointers[5] = copy[7];
-		*pointers[6] = copy[0];		*pointers[7] = copy[3];		*pointers[8] = copy[6];
-	}
-	else
+    bool first_method;
+    if (is_clockwise)
+    {
+        if (current_axis == rotation_axis::Y)
+            first_method = false;
+        else
+            first_method = true;
+    }
+    else
+    {
+        if (current_axis == rotation_axis::Y)
+            first_method = true;
+        else
+            first_method = false;
+    }
+
+    
+
+	if (first_method)
 	{
 		*pointers[0] = copy[6];		*pointers[1] = copy[3];		*pointers[2] = copy[0];
 		*pointers[3] = copy[7];		*pointers[4] = copy[4];		*pointers[5] = copy[1];
 		*pointers[6] = copy[8];		*pointers[7] = copy[5];		*pointers[8] = copy[2];
+	}
+	else
+	{
+		*pointers[0] = copy[2];		*pointers[1] = copy[5];		*pointers[2] = copy[8];
+		*pointers[3] = copy[1];		*pointers[4] = copy[4];		*pointers[5] = copy[7];
+		*pointers[6] = copy[0];		*pointers[7] = copy[3];		*pointers[8] = copy[6];
 	}
 }
 
@@ -341,6 +363,8 @@ void Rubik::rotate(rotation_type rt, bool is_clockwise)
 		rotate_plane(pointers, is_clockwise);
 		current_plane = pointers;
 		last_time_button = current_time;
+
+		std::cout << to_string();
 	}
 }
 
@@ -367,18 +391,25 @@ void Rubik::free()
 
 std::string Rubik::to_string()
 {
-	std::string s = "";
+	std::string s = "\n";
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
 			for (int k = 0; k < 3; k++)
 			{
+				s += matrix[i][j][k].id;
+				s += ": \n";
 				s += matrix[i][j][k].to_string();
+				
+				//s += " ";
 				s += "\n";				
 			}
+			//s += "\n";
 		}
+		//s += "\n\n";
 	}
+	s += "\n\n";
 	
 	return s;
 }

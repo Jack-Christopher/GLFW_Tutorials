@@ -1,8 +1,4 @@
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -128,35 +124,35 @@ void processInput(GLFWwindow* window)
     // Plane Movements
 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rubik.rotate(rotation_type::LEFT, true);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         rubik.rotate(rotation_type::LEFT, false);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        rubik.rotate(rotation_type::LEFT, true);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_X, true);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         rubik.rotate(rotation_type::CENTER_X, false);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_X, true);
 
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rubik.rotate(rotation_type::RIGHT, true);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         rubik.rotate(rotation_type::RIGHT, false);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        rubik.rotate(rotation_type::RIGHT, true);
 
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        rubik.rotate(rotation_type::TOP, true);
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         rubik.rotate(rotation_type::TOP, false);
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        rubik.rotate(rotation_type::TOP, true);
 
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Y, true);
-    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
         rubik.rotate(rotation_type::CENTER_Y, false);
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_Y, true);
 
     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BOTTOM, true);
-    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
         rubik.rotate(rotation_type::BOTTOM, false);
+    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+        rubik.rotate(rotation_type::BOTTOM, true);
 
 
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
