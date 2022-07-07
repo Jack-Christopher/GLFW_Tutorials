@@ -5,11 +5,15 @@
 
 enum class rotation_axis : unsigned short { X = 0, Y = 1, Z = 2 };
 enum drawType { Point = 0, Line = 1, Triangle = 2 };
-enum class rotation_type { 
+
+/*
+enum class rotation_type {
     TOP, BOTTOM,
     RIGHT, LEFT,
-    FRONT, BACK
+    FRONT, BACK,
+    CENTER_X, CENTER_Y, CENTER_Z
 };
+*/
 
 struct color
 {
@@ -121,6 +125,15 @@ namespace op
         return matrix;
     }
 
+    std::vector<std::vector<float>> get_translation_matrix(float x, float y, float z)
+    {
+        std::vector<std::vector<float>> matrix = get_matrix();
+        matrix[0][3] = x;
+        matrix[1][3] = y;
+        matrix[2][3] = z;
+        return matrix;
+    }
+
     void rotate(std::vector<vertex> &vertices, float angle, rotation_axis axis)
     {
         std::vector<std::vector<float>> rotation_matrix;
@@ -136,39 +149,15 @@ namespace op
         }
     }
 
-
-    // about an arbitrary axis
-    std::vector<std::vector<float>> get_rotation_matrix(float angle, vertex u) //u -> axis
+    void translate(std::vector<vertex> &vertices, float x, float y, float z)
     {
-        float sine = sin(angle * (PI / 180));
-        float cosine = cos(angle * (PI / 180));
-        std::vector<std::vector<float>> matrix;
-        matrix = get_matrix();
-
-        matrix[0][0] = cosine + (u.x * u.x) * (1.0f - cosine);
-        matrix[0][1] = u.x * u.y * (1.0f - cosine) - u.z * sine;
-        matrix[0][2] = u.x * u.z * (1.0f - cosine) + u.y * sine;
-
-        matrix[1][0] = u.y * u.x * (1.0f - cosine) - u.z * sine;
-        matrix[1][1] = cosine + (u.y * u.y) * (1.0f - cosine);
-        matrix[1][2] = u.y * u.z * (1.0f - cosine) - u.x * sine;
-
-        matrix[2][0] = u.z * u.x * (1.0f - cosine) - u.y * sine;
-        matrix[2][1] = u.z * u.y * (1.0f - cosine) + u.x * sine;
-        matrix[2][2] = cosine + (u.z * u.z) * (1.0f - cosine);
-
-        return matrix;
-    }
-
-    void rotate(std::vector<vertex>& vertices, float angle, vertex axis)
-    {
-        std::vector<std::vector<float>> rotation_matrix;
-        rotation_matrix = get_rotation_matrix(angle, axis);
-
+        std::vector<std::vector<float>> translation_matrix;
+        translation_matrix = get_translation_matrix(x, y, z);
+        
         for (int i = 0; i < vertices.size(); i++)
         {
             std::vector<float> temp = { vertices[i].x, vertices[i].y, vertices[i].z, 1.0f };
-            multiply(rotation_matrix, temp);
+            multiply(translation_matrix, temp);
             vertices[i].x = temp[0];
             vertices[i].y = temp[1];
             vertices[i].z = temp[2];
@@ -176,6 +165,8 @@ namespace op
     }
 
 
+
+    
 
     void get_rectangle_coords(float x1, float y1, float z1, float x2, float y2, float z2, float* v1, float* v2, rotation_axis axis)
     {
