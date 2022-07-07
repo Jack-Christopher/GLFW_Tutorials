@@ -9,6 +9,7 @@ add_subdirectory( Tutorial_05 )
 add_subdirectory( Tutorial_06 )
 add_subdirectory( Tutorial_07 )
 add_subdirectory( Tutorial_08 )
+add_subdirectory( Camara )
 
 add_subdirectory( Rubik )
 add_subdirectory( Rubik2 )
