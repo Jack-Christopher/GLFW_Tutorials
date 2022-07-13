@@ -17,8 +17,14 @@ float getDeltaTime();
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-float xRot{ 0.0f };
-float yRot{ 0.0f };
+// camera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float xRot = 0.0f ;
+float yRot = 0.0f ;
+float zRot = 0.0f ;
 
 float vertices[] =
 {
@@ -60,6 +66,7 @@ GLuint indices[] =
     4, 1, 5
 };
 
+
 int main()
 {
     glfwInit();
@@ -71,7 +78,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Tutorial 9", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Camrea", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -115,7 +122,8 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    shader.setMat4("projection", proj);
+
 
     glm::vec3 colors[] =
     {
@@ -130,6 +138,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -137,13 +147,19 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        shader.use();
+
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        shader.setMat4("view", view);
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, xRot, glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::rotate(model, yRot, glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, zRot, glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 MVP = proj * view * model;
 
-        shader.use();
         shader.setMat4("u_MVP", MVP);
+
 
         glBindVertexArray(VAO);
         for (int i = 0; i < 6; i++)
@@ -167,6 +183,8 @@ void processInput(GLFWwindow* window)
     float deltaTime{ getDeltaTime() };
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    
+    // Cube Rotations
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         xRot -= deltaTime;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -175,14 +193,32 @@ void processInput(GLFWwindow* window)
         yRot -= deltaTime;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         yRot += deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        xRot -= deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        xRot += deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        yRot -= deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        yRot += deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        zRot += deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        zRot -= deltaTime;
+
+    // Camera movements
+    const float cameraSpeed = 0.001f; // adjust accordingly
+
+    // Camera front movement
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    // Camera back movement
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    // Camera left movement
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    // Camera right movement
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    // Camera up movement
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraUp;
+    // Camera down movement
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraUp;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
