@@ -3,8 +3,7 @@
 
 #include "shader.hpp"
 #include "opengl.h"
-//#include "triangle.h"
-#include "container.h"
+#include "triangle.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,26 +18,19 @@ const unsigned int SCR_HEIGHT = 625;
 const char *title = "Testing";
 
 
-// objects creation
-// Triangle triangle(  { 0.0f, 0.0f, 0.0f },   { 0.75f, 0.0f, 0.0f },   { 0.0f, 0.75f, 0.0f },   "red"   );
-
-std::vector<Triangle> triangles = {
-    { { 0.0f, 0.0f, 0.0f }, { 0.5f, -0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }, "green" },
-    { { 0.0f, 0.0f, 0.0f }, { 0.5f, 0.5f, 0.0f }, { 0.5f, -0.5f, 0.0f }, "blue" },
-    { { 0.0f, 0.0f, 0.0f }, { 0.5f, 0.0f, 0.0f }, { 0.0f, 0.5f, 0.0f }, "red" }
-};
-Container bloque(triangles);
-
-// Shaders
-Shader shader = "shader";
-glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
 int main()
 {
     opengl::init();
     GLFWwindow* window = opengl::createWindow(SCR_WIDTH, SCR_HEIGHT, title);
     opengl::loadGlad();
 
+    // objects creation
+    Triangle triangle(  { 0.0f, 0.0f, 0.0f },   { 0.75f, 0.0f, 0.0f },   { 0.0f, 0.75f, 0.0f },   "red"   );
+    triangle.prepare_VBO_VAO();
+
+  
+    Shader shader = "shader";
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     shader.setMat4("projection", proj);
     
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -51,21 +43,17 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // triangle.draw(shader, proj);
+        triangle.draw(shader, proj);
 
-        // triangle.scale(0.9998f, 0.9998f, 0.9998f);
-        // triangle.translate(0.0003f, 0.0f, 0.0f);
-        // triangle.rotate(0.05f, rotation_axis::Z);
-        bloque.draw(shader, proj);
-        bloque.rotate(0.05f, rotation_axis::Z);
-        //bloque.translate(0.0003f, 0.0f, 0.0f);
-        //bloque.scale(0.9998f, 0.9998f, 0.9998f);
+        triangle.scale(0.9998f, 0.9998f, 0.9998f);
+        triangle.translate(0.0003f, 0.0f, 0.0f);
+        triangle.rotate(0.05f, rotation_axis::Z);
         
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    //triangle.free();
+    triangle.free();
 
     glfwTerminate();
     return 0;

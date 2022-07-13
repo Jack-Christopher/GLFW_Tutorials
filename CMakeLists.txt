@@ -13,6 +13,7 @@ add_subdirectory( Camara )
 
 add_subdirectory( Rubik )
 add_subdirectory( Rubik2 )
+add_subdirectory( Functions )
 add_subdirectory( Cubos )
 add_subdirectory( Projection_NatteRobbins )
 

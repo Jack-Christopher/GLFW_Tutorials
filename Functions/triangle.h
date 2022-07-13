@@ -35,8 +35,7 @@ Triangle::Triangle(vertex a, vertex b, vertex c, std::string color)
     vertices.resize(3);
     coordinates.resize(9);
     set_vertices(a, b, c);
-    prepare_VBO_VAO();
-    color_name = color;
+    color_name = color;    
 }
 
 void Triangle::update_coordinates()
