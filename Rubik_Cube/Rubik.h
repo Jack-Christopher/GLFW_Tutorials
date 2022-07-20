@@ -1,21 +1,37 @@
 #include <vector>
+#include <queue>
+#include <map>
+#include <fstream>
 
 #include "shader.hpp"
 #include "Cube.h"
+#include "solver.h"
 
+std::map<std::string, char> codes = {
+	{ "red",    'R' },
+	{ "yellow", 'Y' },
+	{ "green",  'G' },
+	{ "blue",   'B' },
+	{ "white",	'W' },
+	{ "orange",	'O' },
+	{ "gray",	'A' },
+};
 
 class Rubik
 {
 private:
 	double last_time_rubik = 0.0;
 	double last_time_button = 0.0;
-	int FPS = 60;
-	int PPS = 2;
+	int FPS = 150;
+	int PPS = 4;
 	float remaining_degreees = 0.0f;
 	std::vector<Cube*> current_plane;
 	rotation_type rotation_t;
 	float rotation_angle;
 	rotation_axis current_axis;
+	std::queue<std::string> solution;
+	bool is_solving = false;
+	bool is_saved = false;
 public:
 	Cube matrix[3][3][3];
 
@@ -25,6 +41,9 @@ public:
 	void move_plane(float angle, rotation_axis axis);
 	void rotate_plane(std::vector<Cube*> pointers, bool is_clockwise);
 	void rotate(rotation_type rt, bool is_clockwise);
+	void save_data();
+	void apply_solution();
+	void solve();
 	void free();
 	std::string to_string();
 	~Rubik();
@@ -57,85 +76,85 @@ Rubik::Rubik()
 
 	// corner
 	matrix[0][0][0].faces[1].color_name = "white";
-	matrix[0][0][0].faces[2].color_name = "green";
-	matrix[0][0][0].faces[4].color_name = "red";
+	matrix[0][0][0].faces[2].color_name = "orange";
+	matrix[0][0][0].faces[4].color_name = "green";
 	// edge
 	matrix[0][0][1].faces[1].color_name = "white";
-	matrix[0][0][1].faces[4].color_name = "red";
+	matrix[0][0][1].faces[4].color_name = "green";
 	// corner
 	matrix[0][0][2].faces[1].color_name = "white";
-	matrix[0][0][2].faces[3].color_name = "blue";
-	matrix[0][0][2].faces[4].color_name = "red";
+	matrix[0][0][2].faces[3].color_name = "red";
+	matrix[0][0][2].faces[4].color_name = "green";
 	// edge
-	matrix[0][1][0].faces[2].color_name = "green";
-	matrix[0][1][0].faces[4].color_name = "red";
+	matrix[0][1][0].faces[2].color_name = "orange";
+	matrix[0][1][0].faces[4].color_name = "green";
 	// center
-	matrix[0][1][1].faces[4].color_name = "red";
+	matrix[0][1][1].faces[4].color_name = "green";
 	// edge
-	matrix[0][1][2].faces[3].color_name = "blue";
-	matrix[0][1][2].faces[4].color_name = "red";
+	matrix[0][1][2].faces[3].color_name = "red";
+	matrix[0][1][2].faces[4].color_name = "green";
 	// corner
 	matrix[0][2][0].faces[0].color_name = "yellow";
-	matrix[0][2][0].faces[2].color_name = "green";
-	matrix[0][2][0].faces[4].color_name = "red";
+	matrix[0][2][0].faces[2].color_name = "orange";
+	matrix[0][2][0].faces[4].color_name = "green";
 	// edge
 	matrix[0][2][1].faces[0].color_name = "yellow";
-	matrix[0][2][1].faces[4].color_name = "red";
+	matrix[0][2][1].faces[4].color_name = "green";
 	// corner
 	matrix[0][2][2].faces[0].color_name = "yellow";
-	matrix[0][2][2].faces[3].color_name = "blue";
-	matrix[0][2][2].faces[4].color_name = "red";
+	matrix[0][2][2].faces[3].color_name = "red";
+	matrix[0][2][2].faces[4].color_name = "green";
 	// edge
 	matrix[1][0][0].faces[1].color_name = "white";
-	matrix[1][0][0].faces[2].color_name = "green";
+	matrix[1][0][0].faces[2].color_name = "orange";
 	// center 
 	matrix[1][0][1].faces[1].color_name = "white";
 	// edge
 	matrix[1][0][2].faces[1].color_name = "white";
-	matrix[1][0][2].faces[3].color_name = "blue";
+	matrix[1][0][2].faces[3].color_name = "red";
 	// center 
-	matrix[1][1][0].faces[2].color_name = "green";
+	matrix[1][1][0].faces[2].color_name = "orange";
 
 	// center
-	matrix[1][1][2].faces[3].color_name = "blue";
+	matrix[1][1][2].faces[3].color_name = "red";
 	//edge
-	matrix[1][2][0].faces[2].color_name = "green";
+	matrix[1][2][0].faces[2].color_name = "orange";
 	matrix[1][2][0].faces[0].color_name = "yellow";
 	// center
 	matrix[1][2][1].faces[0].color_name = "yellow";
 	// edge
 	matrix[1][2][2].faces[0].color_name = "yellow";
-	matrix[1][2][2].faces[3].color_name = "blue";
+	matrix[1][2][2].faces[3].color_name = "red";
 	// corner
 	matrix[2][0][0].faces[1].color_name = "white";
-	matrix[2][0][0].faces[2].color_name = "green";
-	matrix[2][0][0].faces[5].color_name = "orange";
+	matrix[2][0][0].faces[2].color_name = "orange";
+	matrix[2][0][0].faces[5].color_name = "blue";
 	// edge
 	matrix[2][0][1].faces[1].color_name = "white";
-	matrix[2][0][1].faces[5].color_name = "orange";
+	matrix[2][0][1].faces[5].color_name = "blue";
 	// corner
 	matrix[2][0][2].faces[1].color_name = "white";
-	matrix[2][0][2].faces[3].color_name = "blue";
-	matrix[2][0][2].faces[5].color_name = "orange";
+	matrix[2][0][2].faces[3].color_name = "red";
+	matrix[2][0][2].faces[5].color_name = "blue";
 	// edge
-	matrix[2][1][0].faces[2].color_name = "green";
-	matrix[2][1][0].faces[5].color_name = "orange";
+	matrix[2][1][0].faces[2].color_name = "orange";
+	matrix[2][1][0].faces[5].color_name = "blue";
 	//center
-	matrix[2][1][1].faces[5].color_name = "orange";
+	matrix[2][1][1].faces[5].color_name = "blue";
 	// edge
-	matrix[2][1][2].faces[3].color_name = "blue";
-	matrix[2][1][2].faces[5].color_name = "orange";
+	matrix[2][1][2].faces[3].color_name = "red";
+	matrix[2][1][2].faces[5].color_name = "blue";
 	// corner
 	matrix[2][2][0].faces[0].color_name = "yellow";
-	matrix[2][2][0].faces[2].color_name = "green";
-	matrix[2][2][0].faces[5].color_name = "orange";
+	matrix[2][2][0].faces[2].color_name = "orange";
+	matrix[2][2][0].faces[5].color_name = "blue";
 	// edge
 	matrix[2][2][1].faces[0].color_name = "yellow";
-	matrix[2][2][1].faces[5].color_name = "orange";
+	matrix[2][2][1].faces[5].color_name = "blue";
 	// corner
 	matrix[2][2][2].faces[0].color_name = "yellow";
-	matrix[2][2][2].faces[3].color_name = "blue";
-	matrix[2][2][2].faces[5].color_name = "orange";
+	matrix[2][2][2].faces[3].color_name = "red";
+	matrix[2][2][2].faces[5].color_name = "blue";
 }
 
 
@@ -159,12 +178,49 @@ void Rubik::prepare_VB0_VAO()
 	}
 }
 
+void Rubik::apply_solution()
+{
+	double current_time = glfwGetTime();
+	if ((current_time - last_time_rubik) > 2.5 / PPS)
+	{
+		std::cout << "Movimientos restantes: " << solution.size() << "\n";
+		std::string word = solution.front();
+		std::cout <<  "Movimiento: "<< word << "\n";
+		solution.pop();
+		if (word == "R")
+			rotate(rotation_type::RIGHT, false);
+		else if (word == "L")
+			rotate(rotation_type::LEFT, true);
+		else if (word == "U")
+			rotate(rotation_type::TOP, false);
+		else if (word == "D")
+			rotate(rotation_type::BOTTOM, true);
+		else if (word == "F")
+			rotate(rotation_type::FRONT, false);
+		else if (word == "B")
+			rotate(rotation_type::BACK, true);
+		else if (word == "R'")
+			rotate(rotation_type::RIGHT, true);
+		else if (word == "L'")
+			rotate(rotation_type::LEFT, false);
+		else if (word == "U'")
+			rotate(rotation_type::TOP, true);
+		else if (word == "D'")
+			rotate(rotation_type::BOTTOM, false);
+		else if (word == "F'")
+			rotate(rotation_type::FRONT, true);
+		else if (word == "B'")
+			rotate(rotation_type::BACK, false);
+	}
+}
+
+
 void Rubik::move_plane(float angle, rotation_axis axis)
 {
 	double current_time = glfwGetTime();
 	if ((current_time - last_time_rubik) > 1.0 / FPS)
 	{
-		std::cout << remaining_degreees << ", ";
+		// std::cout << remaining_degreees << ", ";
 
 		for (int i = 0; i < current_plane.size(); i++)
 		{
@@ -189,6 +245,11 @@ void Rubik::move_plane(float angle, rotation_axis axis)
 
 void Rubik::draw(Shader &shader, glm::mat4 proj)
 {
+	if (solution.size() > 0)
+		apply_solution();
+		
+	else
+		is_solving = false;
 	if (remaining_degreees > 0.02f || remaining_degreees < -0.02f)
 		move_plane(rotation_angle, current_axis);
 	else
@@ -254,7 +315,7 @@ void Rubik::rotate_plane(std::vector<Cube*> pointers, bool is_clockwise)
 void Rubik::rotate(rotation_type rt, bool is_clockwise)
 {
 	double current_time = glfwGetTime();
-	if ((current_time - last_time_button) > 1.0 / PPS)
+	if ((current_time - last_time_button) > 2.0 / PPS)
 	{
 		remaining_degreees = (is_clockwise) ? (90.0f) : (-90.0f);
 		rotation_angle = (is_clockwise) ? (5.0f) : (-5.0f);
@@ -303,7 +364,7 @@ void Rubik::rotate(rotation_type rt, bool is_clockwise)
 		case rotation_type::FRONT:
 			for (int j = 2; j >= 0; j--)
 				for (int i = 2; i >= 0; i--)
-					pointers.push_back(&matrix[i][j][2]);
+					pointers.push_back(&matrix[i][j][0]);
 			current_axis = rotation_axis::Z;
 			break;
 		case rotation_type::CENTER_Z:
@@ -315,7 +376,7 @@ void Rubik::rotate(rotation_type rt, bool is_clockwise)
 		case rotation_type::BACK:
 			for (int j = 2; j >= 0; j--)
 				for (int i = 2; i >= 0; i--)
-					pointers.push_back(&matrix[i][j][0]);
+					pointers.push_back(&matrix[i][j][2]);
 			current_axis = rotation_axis::Z;
 			break;
 		}
@@ -324,8 +385,164 @@ void Rubik::rotate(rotation_type rt, bool is_clockwise)
 		current_plane = pointers;
 		last_time_button = current_time;
 
-		std::cout << to_string();
+		// std::cout << to_string();
 	}
+}
+
+
+void Rubik::save_data()
+{
+	if (is_saved)
+		return;
+	// create file result.txt
+	is_saved = true;
+	std::ofstream file;
+	file.open("data.txt", std::ios::trunc);
+
+	// WHITE
+	for (int k = 2; k >= 0; k--)
+	{
+		for (int i = 2; i >= 0; i--)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[i][0][k].faces[f].color_name != "gray" && op::get_axis(matrix[i][0][k].faces[f]) == rotation_axis::Y)
+					file << codes[matrix[i][0][k].faces[f].color_name];
+			}
+		}
+		file << "\n";
+	}
+
+	// ORANGE
+	for (int j = 0; j < 3; j++)
+	{
+		for (int i = 2; i >= 0; i--)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[i][j][0].faces[f].color_name != "gray" && op::get_axis(matrix[i][j][0].faces[f]) == rotation_axis::Z)
+					file << codes[matrix[i][j][0].faces[f].color_name];
+			}
+		}
+		file << "\n";
+	}
+	
+	// GREEN
+	for (int j = 0; j < 3; j++)
+	{
+		for (int k = 0; k < 3; k++)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[0][j][k].faces[f].color_name != "gray" && op::get_axis(matrix[0][j][k].faces[f]) == rotation_axis::X)
+					file << codes[matrix[0][j][k].faces[f].color_name];
+			}
+		}
+		file << "\n";
+	}
+
+	// RED
+	for (int j = 0; j < 3; j++)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[i][j][2].faces[f].color_name != "gray" && op::get_axis(matrix[i][j][2].faces[f]) == rotation_axis::Z)
+					file << codes[matrix[i][j][2].faces[f].color_name];
+			}
+		}
+		file << "\n";
+	}
+
+	// BLUE
+	for (int j = 0; j < 3; j++)
+	{
+		for (int k = 2; k >= 0; k--)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[2][j][k].faces[f].color_name != "gray" && op::get_axis(matrix[2][j][k].faces[f]) == rotation_axis::X)
+					file << codes[matrix[2][j][k].faces[f].color_name];
+			}
+		}
+			
+		file << "\n";
+	}
+	
+	// YELLOW
+	for (int k = 0; k < 3; k++)
+	{
+		for (int i = 2; i >= 0; i--)
+		{
+			// faces loop
+			for (int f = 0; f < 6; f++)
+			{
+				if (matrix[i][2][k].faces[f].color_name != "gray" && op::get_axis(matrix[i][2][k].faces[f]) == rotation_axis::Y)
+					file << codes[matrix[i][2][k].faces[f].color_name];
+			}
+		}
+		file << "\n";
+	}
+
+	file.close();
+
+	solver::solve();
+}
+
+
+void Rubik::solve()
+{
+	if (is_solving)
+		return;
+	is_solving = true;
+
+    // read from result.txt
+    std::ifstream file("result.txt");
+    // read word by word separated by spaces
+    std::string word;
+    while (file >> word)
+    {
+		//std::cout << "--" << word << "--";
+		
+		if (word == "R2")
+		{
+			solution.push("R");
+			solution.push("R");
+		}
+		else if (word == "L2")
+		{
+			solution.push("L");
+			solution.push("L");
+		}
+		else if (word == "U2")
+		{
+			solution.push("U");
+			solution.push("U");
+		}
+		else if (word == "D2")
+		{
+			solution.push("D");
+			solution.push("D");
+		}
+		else if (word == "F2")
+		{
+			solution.push("F");
+			solution.push("F");
+		}
+		else if (word == "B2")
+		{
+			solution.push("B");
+			solution.push("B");
+		}
+		else
+			solution.push(word);
+    }
 }
 
 

@@ -61,6 +61,26 @@ std::map<std::string, glm::vec3> colors = {
 
 namespace op
 {
+    rotation_axis get_axis(face f)
+    {
+        // array of all vertices
+        std::vector<vertex> vertices= { f.a1, f.a2, f.a3,   f.b1, f.b2, f.b3 };
+
+        float x_min = (*std::min_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.x < b.x; })).x;
+        float x_max = (*std::max_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.x < b.x; })).x;
+        float y_min = (*std::min_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.y < b.y; })).y;
+        float y_max = (*std::max_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.y < b.y; })).y;
+        float z_min = (*std::min_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.z < b.z; })).z;
+        float z_max = (*std::max_element(vertices.begin(), vertices.end(), [](vertex a, vertex b) { return a.z < b.z; })).z;
+
+        if (abs(x_max - x_min) < 0.02f)
+            return rotation_axis::X;
+        else if (abs(y_max - y_min) < 0.02f)
+            return rotation_axis::Y;
+        else if (abs(z_max - z_min) < 0.02f)
+            return rotation_axis::Z;
+    }
+
 
     // Math operations
     void multiply(std::vector<std::vector<float>> matrix, std::vector<float>& vertices)

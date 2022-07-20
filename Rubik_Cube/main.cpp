@@ -97,54 +97,63 @@ void processInput(GLFWwindow* window)
     float deltaTime{ getDeltaTime() };
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    // Cube solver
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+        rubik.solve();
+    if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS)
+    {
+        std::cout << "Saving...";
+        rubik.save_data();
+    }
     
     // Cube movements 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rubik.rotate(rotation_type::LEFT, false);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         rubik.rotate(rotation_type::LEFT, true);
-
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        rubik.rotate(rotation_type::LEFT, false);
+    /*
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_X, false);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         rubik.rotate(rotation_type::CENTER_X, true);
-
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_X, false);
+    */
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         rubik.rotate(rotation_type::RIGHT, false);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         rubik.rotate(rotation_type::RIGHT, true);
 
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        rubik.rotate(rotation_type::TOP, false);
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        rubik.rotate(rotation_type::TOP, true);
-
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Y, false);
-    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Y, true);
-
-    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BOTTOM, false);
-    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BOTTOM, true);
-
-
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+        rubik.rotate(rotation_type::TOP, false);
+    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+        rubik.rotate(rotation_type::TOP, true);
+    /*
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_Y, true);
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_Y, false);
+    */
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        rubik.rotate(rotation_type::BOTTOM, true);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        rubik.rotate(rotation_type::BOTTOM, false);
+
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         rubik.rotate(rotation_type::FRONT, false);
-    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
         rubik.rotate(rotation_type::FRONT, true);
-
+    /*
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        rubik.rotate(rotation_type::CENTER_Z, false);
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         rubik.rotate(rotation_type::CENTER_Z, true);
-
-    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        rubik.rotate(rotation_type::BACK, false);
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        rubik.rotate(rotation_type::CENTER_Z, false);
+    */
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
         rubik.rotate(rotation_type::BACK, true);
+    if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+        rubik.rotate(rotation_type::BACK, false);
 
 
 
@@ -171,17 +180,17 @@ void processInput(GLFWwindow* window)
         cameraPos += cameraSpeed * cameraUp;
 
     // Camera rotations
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
         xRot -= deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         xRot += deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
         yRot -= deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
         yRot += deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
         zRot += deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
         zRot -= deltaTime;
 }
 
