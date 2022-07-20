@@ -25,7 +25,7 @@ int main()
     opengl::loadGlad();
 
     // objects creation
-    Triangle triangle(  { 0.0f, 0.0f, 0.0f },   { 0.75f, 0.0f, 0.0f },   { 0.0f, 0.75f, 0.0f },   "red"   );
+    Triangle triangle(  { 0.0f, 0.0f, 0.0f },   { 0.75f, 0.0f, 0.0f },   { 0.0f, 0.75f, 0.0f },   "blue"   );
     triangle.prepare_VBO_VAO();
 
   
@@ -45,9 +45,9 @@ int main()
 
         triangle.draw(shader, proj);
 
-        triangle.scale(0.9998f, 0.9998f, 0.9998f);
-        triangle.translate(0.0003f, 0.0f, 0.0f);
-        triangle.rotate(0.05f, rotation_axis::Z);
+        //triangle.scale(0.9998f, 0.9998f, 0.9998f);
+        //triangle.translate(0.0003f, 0.0f, 0.0f);
+        //triangle.rotate(0.05f, rotation_axis::Z);
         
 
         glfwSwapBuffers(window);
